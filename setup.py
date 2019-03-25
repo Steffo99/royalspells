@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="royalspells",
-    version="3.2a1",
+    version="3.2",
     author="Stefano Pigozzi",
     author_email="ste.pigozzi@gmail.com",
     description="A package to procedurally generate useless spells!",
