@@ -1,0 +1,3 @@
+class Buff:
+    # TODO
+    ...

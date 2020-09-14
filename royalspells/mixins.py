@@ -1,5 +1,12 @@
 from typing import *
+import abc
 import random
+
+
+__all__ = [
+    "SeededMixin",
+    "Selectable",
+]
 
 
 class SeededMixin:
@@ -8,7 +15,10 @@ class SeededMixin:
         self.rand = random.Random(hash(seed))
 
 
-class RandomMixin:
-    def __init__(self, rand: random.Random, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.rand = rand
+class Selectable(metaclass=abc.ABCMeta):
+    """A class from which an instance can be generated through the :meth:`.select` method."""
+
+    @classmethod
+    @abc.abstractmethod
+    def select(cls, rand: random.Random):
+        raise NotImplementedError()

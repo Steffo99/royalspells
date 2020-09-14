@@ -1,9 +1,10 @@
 from typing import *
-import math
 import enum
-import abc
+import random
 
 from .mixins import *
+from .formulas import *
+from .buffs import *
 
 
 class Spell(SeededMixin):
@@ -14,24 +15,7 @@ class Spell(SeededMixin):
         self.cost = ...
 
 
-class Effect(RandomMixin):
-    """A single consequence of a spell."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.target: Target = Target.select(self.rand)
-        """The :class:`Target` of the effect."""
-
-        self.damage: Optional[Damage] = ...
-        """The :class:`Damage` of the effect, or :const:`None` if it doesn't do any damage."""
-
-        self.healing = ...
-        self.buffs = ...
-        self.attributes = ...
-
-
-class Target(enum.Enum):
+class Target(enum.Enum, Selectable):
     """A target for a spell."""
 
     RANDOM_ENEMY = enum.auto()
@@ -43,10 +27,9 @@ class Target(enum.Enum):
     USELESS_THING = enum.auto()
 
     @classmethod
-    def select(cls, seed: random.Random):
+    def select(cls, rand: random.Random):
         """Pick a target using the default distribution."""
-
-        result = seed.randrange(1, 101)
+        result = rand.randrange(1, 101)
         """A number from 1 to 100, determining the chosen target."""
 
         # 50%: RANDOM_ENEMY
@@ -72,56 +55,45 @@ class Target(enum.Enum):
             return Target.USELESS_THING
 
 
-class Damage(RandomMixin, metaclass=abc.ABCMeta):
-    """The damage of a spell effect. Should be extended, implementing its methods.
+class Effect(Selectable):
+    """A single consequence of a spell."""
 
-    Examples:
-        See :class:`UniformDamage`, :class:`NormalDamage` and :class:`FixedDamage`."""
+    def __init__(self,
+                 target: Target,
+                 damage: Optional[Formula] = None,
+                 healing: Optional[Formula] = None,
+                 buffs: Optional[List[Buff]] = None):
 
-    @abc.abstractmethod
-    def select(self, rand: random.Random) -> int:
-        """Calculate the damage of the spell. It should always return a non-negative :class:`int`.
+        self.target: Target = target
+        """The :class:`Target` of the effect."""
 
-        Note:
-            It uses a separate RNG than the one passed to the damage class!"""
-        raise NotImplementedError()
+        self.damage: Optional[Formula] = damage
+        """The :class:`Formula` that calculates the damage of the effect, or :const:`None` if it doesn't do any 
+        damage."""
 
+        self.healing: Optional[Formula] = healing
+        """The :class:`Formula` that calculates the healing of the effect, or :const:`None` if it doesn't do any 
+        damage."""
 
-class UniformDamage(Damage):
-    """The damage of a spell effect, following a gaussian distribution."""
+        self.buffs: List[Buff] = buffs if buffs else []
+        """A :class:`list` of :class:`Buff` that will be applied to the target after the damage/healing is applied."""
 
-    def __init__(self, min_: float, max_: float, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.min: float = min_
-        self.max: float = max_
+    @classmethod
+    def select(cls, rand: random.Random):
+        # noinspection PyDictCreation
+        kw = {}
 
-    def select(self, rand: random.Random) -> int:
-        n = self.rand.uniform(self.min, self.max)
-        n = math.ceil(n)
-        return n
+        kw["target"] = Target.select(rand)
 
+        type_ = rand.randrange(1, 101)
+        # 70%: Damaging
+        if type_ <= 70:
+            kw["damage"] = Formula.select(rand)
+        # 20%: Healing
+        elif type_ <= 90:
+            kw["healing"] = Formula.select(rand) if rand.randrange(1, 101) <= 20 else None
+        # 10%: Neither
 
-class NormalDamage(Damage):
-    """The damage of a spell effect, following a gaussian distribution."""
+        kw["buffs"] = []
 
-    def __init__(self, mu: float, sigma: float, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.mu: float = mu
-        self.sigma: float = sigma
-
-    def select(self, rand: random.Random) -> int:
-        n = self.rand.gauss(self.mu, self.sigma)
-        n = n if n > 0 else 0
-        n = math.ceil(n)
-        return n
-
-
-class FixedDamage(Damage):
-    """The damage of a spell effect, which is always constant."""
-
-    def __init__(self, value: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.value = value
-
-    def select(self, rand: random.Random) -> int:
-        return self.value
+        return cls(**kw)
