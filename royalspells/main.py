@@ -84,12 +84,17 @@ class StatsComponent:
                  "Saggezza", "Carisma", "Attacco Speciale", "Difesa Speciale",
                  "Eccellenza", "Immaginazione", "Cromosomi", "Timidezza", "Sonno",
                  "Elasticità", "Peso", "Sanità", "Appetito", "Fortuna", "Percezione",
-                 "Determinazione"]
+                 "Determinazione", "Chips", "Mult", "Nucleare", "Psiche", "Psicologia",
+                 "Garasauto", "Tifoseria", "Gioia", "Visione", "Visibilità", "Fuffa",
+                 "Morbidezza", "Magia", "Spettacolo", "Appeal", "Infezione", "Infestazione"
+                 "Genere"]
 
-    change_distribution = (["--"] * 1) + \
-                          (["-"] * 2) + \
-                          (["+"] * 2) + \
-                          (["++"] * 1)
+    change_distribution = (["--"] * 16) + \
+                          (["-"] * 32) + \
+                          (["+"] * 32) + \
+                          (["++"] * 16) + \
+                          (["×2"] * 2) + \
+                          (["×3"] * 1)
 
     multistat_distribution = ([1] * 16) + \
                              ([2] * 8) + \
@@ -117,11 +122,13 @@ class StatusEffectComponent:
                           "Congelamento", "Iperveleno", "Sonno", "Stordimento",
                           "Rallentamento", "Radicamento", "Rigenerazione", "Morte",
                           "Affaticamento", "Glitch", "Accecamento", "Silenzio",
-                          "Esilio", "Invisibilità", "Rapidità", "Splendore"]
+                          "Esilio", "Invisibilità", "Rapidità", "Splendore",
+                          "Visione notturna", "Resistenza al fuoco", "Respirazione subacqua",
+                          "Debolezza", "Slimed", "Jarate"]
 
     def __init__(self):
         # ENSURE THE SEED IS ALREADY SET WHEN CREATING THIS COMPONENT!!!
-        self.chance = random.randrange(1, 101)
+        self.chance = random.randrange(1, 103)
         self.effect = random.sample(self.all_status_effects, 1)[0]
 
     def __repr__(self):
