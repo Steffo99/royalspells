@@ -2,7 +2,7 @@
 
 ![](.media/icon-128x128_round.png)
 
-# `royalspells`
+# Royal Spells
 
 Meaningless fantasy spell stats generator
 
